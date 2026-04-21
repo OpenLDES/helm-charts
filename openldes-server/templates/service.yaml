@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "openldes-server.fullname" . }}
+  labels:
+    {{- include "openldes-server.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.ports.fetch }}
+      targetPort: fetch
+      protocol: TCP
+      name: fetch
+    - port: {{ .Values.service.ports.ingest }}
+      targetPort: ingest
+      protocol: TCP
+      name: ingest
+    - port: {{ .Values.service.ports.admin }}
+      targetPort: admin
+      protocol: TCP
+      name: admin
+  selector:
+    {{- include "openldes-server.selectorLabels" . | nindent 4 }}

@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "openldes-server.fullname" . }}
+  labels:
+    {{- include "openldes-server.labels" . | nindent 4 }}
+data:
+  application.yml: |
+    {{- if .Values.config.springdoc }}
+    springdoc:
+      {{- if .Values.config.springdoc.apiDocsPath }}
+      api-docs:
+        path: {{ .Values.config.springdoc.apiDocsPath }}
+      {{- end }}
+      {{- if .Values.config.springdoc.swaggerUiPath }}
+      swagger-ui:
+        path: {{ .Values.config.springdoc.swaggerUiPath }}
+      {{- end }}
+    {{- end }}
+    {{- if and .Values.config.server .Values.config.server.address }}
+    server:
+      address: {{ .Values.config.server.address }}
+    {{- end }}
+    {{- if .Values.config.ldesServer }}
+    ldes-server:
+      {{- if .Values.config.ldesServer.hostName }}
+      host-name: {{ .Values.config.ldesServer.hostName }}
+      {{- end }}
+      {{- if not (kindIs "invalid" .Values.config.ldesServer.useRelativeUrl) }}
+      use-relative-url: {{ .Values.config.ldesServer.useRelativeUrl }}
+      {{- end }}
+      {{- if .Values.config.ldesServer.fragmentationCron }}
+      fragmentation-cron: {{ .Values.config.ldesServer.fragmentationCron | quote }}
+      {{- end }}
+      {{- if .Values.config.ldesServer.compactionDuration }}
+      compaction-duration: {{ .Values.config.ldesServer.compactionDuration }}
+      {{- end }}
+      {{- if .Values.config.ldesServer.maintenanceCron }}
+      maintenance-cron: {{ .Values.config.ldesServer.maintenanceCron | quote }}
+      {{- end }}
+      {{- if and .Values.config.ldesServer.ingest .Values.config.ldesServer.ingest.port }}
+      ingest:
+        port: {{ .Values.config.ldesServer.ingest.port }}
+      {{- end }}
+      {{- if and .Values.config.ldesServer.fetch .Values.config.ldesServer.fetch.port }}
+      fetch:
+        port: {{ .Values.config.ldesServer.fetch.port }}
+      {{- end }}
+      {{- if and .Values.config.ldesServer.admin .Values.config.ldesServer.admin.port }}
+      admin:
+        port: {{ .Values.config.ldesServer.admin.port }}
+      {{- end }}
+      {{- with .Values.config.ldesServer.formatting.prefixes }}
+      formatting:
+        prefixes:
+          {{- toYaml . | nindent 10 }}
+      {{- end }}
+    {{- end }}
+    {{- if .Values.config.rest }}
+    rest:
+      {{- if .Values.config.rest.maxAge }}
+      max-age: {{ .Values.config.rest.maxAge }}
+      {{- end }}
+      {{- if .Values.config.rest.maxAgeImmutable }}
+      max-age-immutable: {{ .Values.config.rest.maxAgeImmutable }}
+      {{- end }}
+    {{- end }}
+    {{- if and .Values.config.spring .Values.config.spring.datasource }}
+    spring:
+      datasource:
+        {{- if .Values.config.spring.datasource.url }}
+        url: {{ .Values.config.spring.datasource.url }}
+        {{- end }}
+        {{- if .Values.config.spring.datasource.username }}
+        username: {{ .Values.config.spring.datasource.username }}
+        {{- end }}
+        {{- if .Values.config.spring.datasource.password }}
+        password: {{ .Values.config.spring.datasource.password }}
+        {{- end }}
+    {{- end }}
+    {{- with .Values.config.extraConfig }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}

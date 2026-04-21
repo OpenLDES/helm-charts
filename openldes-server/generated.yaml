@@ -1,0 +1,160 @@
+---
+# Source: openldes-server/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: test-openldes-server
+  labels:
+    helm.sh/chart: openldes-server-0.1.0
+    app.kubernetes.io/name: openldes-server
+    app.kubernetes.io/instance: test
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+automountServiceAccountToken: true
+---
+# Source: openldes-server/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-openldes-server
+  labels:
+    helm.sh/chart: openldes-server-0.1.0
+    app.kubernetes.io/name: openldes-server
+    app.kubernetes.io/instance: test
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+data:
+  application.yml: |
+    springdoc:
+    ldes-server:
+      fragmentation-cron: "*/30 * * * * *"
+      compaction-duration: P7D
+      maintenance-cron: "0 0 0 * * *"
+      ingest:
+        port: 8081
+      fetch:
+        port: 8080
+      admin:
+        port: 8082
+    rest:
+      max-age: 604800
+      max-age-immutable: 604800
+    spring:
+      datasource:
+        url: jdbc:postgresql://localhost:5432/ldes-server
+        username: ldes-server
+        password: ldes-server
+---
+# Source: openldes-server/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-openldes-server
+  labels:
+    helm.sh/chart: openldes-server-0.1.0
+    app.kubernetes.io/name: openldes-server
+    app.kubernetes.io/instance: test
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: fetch
+      protocol: TCP
+      name: fetch
+    - port: 8081
+      targetPort: ingest
+      protocol: TCP
+      name: ingest
+    - port: 8082
+      targetPort: admin
+      protocol: TCP
+      name: admin
+  selector:
+    app.kubernetes.io/name: openldes-server
+    app.kubernetes.io/instance: test
+---
+# Source: openldes-server/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-openldes-server
+  labels:
+    helm.sh/chart: openldes-server-0.1.0
+    app.kubernetes.io/name: openldes-server
+    app.kubernetes.io/instance: test
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: openldes-server
+      app.kubernetes.io/instance: test
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: openldes-server-0.1.0
+        app.kubernetes.io/name: openldes-server
+        app.kubernetes.io/instance: test
+        app.kubernetes.io/version: "1.16.0"
+        app.kubernetes.io/managed-by: Helm
+    spec:
+      serviceAccountName: test-openldes-server
+      containers:
+        - name: openldes-server
+          securityContext:
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 2000
+            seccompProfile:
+              type: RuntimeDefault
+          image: "openldes/ldes-server:latest"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: fetch
+              containerPort: 8080
+              protocol: TCP
+            - name: ingest
+              containerPort: 8081
+              protocol: TCP
+            - name: admin
+              containerPort: 8082
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: fetch
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: fetch
+          resources:
+            limits:
+              cpu: 500m
+              memory: 2Gi
+            requests:
+              cpu: 250m
+              memory: 256Mi
+---
+# Source: openldes-server/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "test-openldes-server-test-connection"
+  labels:
+    helm.sh/chart: openldes-server-0.1.0
+    app.kubernetes.io/name: openldes-server
+    app.kubernetes.io/instance: test
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['test-openldes-server:8080']
+  restartPolicy: Never

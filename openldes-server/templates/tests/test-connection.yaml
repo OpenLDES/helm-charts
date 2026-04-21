@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "openldes-server.fullname" . }}-test-connection"
+  labels:
+    {{- include "openldes-server.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "openldes-server.fullname" . }}:{{ .Values.service.ports.fetch }}']
+  restartPolicy: Never
