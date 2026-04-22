@@ -25,32 +25,32 @@ config:
     useRelativeUrl:
     # Port configuration
     fetch:
-      port: 8080
+      port:
     ingest:
-      port: 8081
+      port:
     admin:
-      port: 8082
+      port:
     # Cron expression for fragmentation
-    fragmentationCron: "*/30 * * * * *"
+    fragmentationCron:
     # ISO 8601 duration for compaction
-    compactionDuration: P7D
+    compactionDuration:
     # Cron expression for maintenance
-    maintenanceCron: "0 0 0 * * *"
+    maintenanceCron:
     # Formatting
     formatting:
       prefixes: {}
 
   # Cache control
   rest:
-    maxAge: 604800
-    maxAgeImmutable: 604800
+    maxAge:
+    maxAgeImmutable:
 
   # PostgreSQL connection settings
   spring:
     datasource:
-      url: jdbc:postgresql://localhost:5432/ldes-server
-      username: ldes-server
-      password: ldes-server
+      url:
+      username:
+      password:
 
   # -- Additional configuration to merge into application.yml
   extraConfig: {}
@@ -97,11 +97,7 @@ securityContext:
 service:
   # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
   type: ClusterIP
-  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
-  ports:
-    fetch: 8080
-    ingest: 8081
-    admin: 8082
+  # The settings for the ports can be found under config.ldesServer.fetch, config.ldesServer.ingest and config.ldesServer.admin
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:

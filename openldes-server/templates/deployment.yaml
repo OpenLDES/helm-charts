@@ -42,14 +42,18 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: fetch
-              containerPort: {{ .Values.service.ports.fetch }}
+              containerPort: {{ .Values.config.ldesServer.fetch.port | default 8080 }}
               protocol: TCP
+            {{- if and .Values.config.ldesServer.ingest .Values.config.ldesServer.ingest.port }}
             - name: ingest
-              containerPort: {{ .Values.service.ports.ingest }}
+              containerPort: {{ .Values.config.ldesServer.ingest.port }}
               protocol: TCP
+            {{- end }}
+            {{- if and .Values.config.ldesServer.admin .Values.config.ldesServer.admin.port }}
             - name: admin
-              containerPort: {{ .Values.service.ports.admin }}
+              containerPort: {{ .Values.config.ldesServer.admin.port }}
               protocol: TCP
+            {{- end }}
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

@@ -23,9 +23,7 @@ data:
     {{- end }}
     {{- if .Values.config.ldesServer }}
     ldes-server:
-      {{- if .Values.config.ldesServer.hostName }}
-      host-name: {{ .Values.config.ldesServer.hostName }}
-      {{- end }}
+      host-name: {{ required "config.ldesServer.hostName is required" .Values.config.ldesServer.hostName }}
       {{- if not (kindIs "invalid" .Values.config.ldesServer.useRelativeUrl) }}
       use-relative-url: {{ .Values.config.ldesServer.useRelativeUrl }}
       {{- end }}

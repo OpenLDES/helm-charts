@@ -7,17 +7,21 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.ports.fetch }}
+    - port: {{ .Values.config.ldesServer.fetch.port | default 8080 }}
       targetPort: fetch
       protocol: TCP
       name: fetch
-    - port: {{ .Values.service.ports.ingest }}
+    {{- if and .Values.config.ldesServer.ingest .Values.config.ldesServer.ingest.port }}
+    - port: {{ .Values.config.ldesServer.ingest.port }}
       targetPort: ingest
       protocol: TCP
       name: ingest
-    - port: {{ .Values.service.ports.admin }}
+    {{- end }}
+    {{- if and .Values.config.ldesServer.admin .Values.config.ldesServer.admin.port }}
+    - port: {{ .Values.config.ldesServer.admin.port }}
       targetPort: admin
       protocol: TCP
       name: admin
+    {{- end }}
   selector:
     {{- include "openldes-server.selectorLabels" . | nindent 4 }}
