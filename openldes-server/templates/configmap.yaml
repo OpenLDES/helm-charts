@@ -6,7 +6,7 @@ metadata:
     {{- include "openldes-server.labels" . | nindent 4 }}
 data:
   application.yml: |
-    {{- if .Values.config.springdoc }}
+    {{- if or (and .Values.config.springdoc .Values.config.springdoc.apiDocsPath) (and .Values.config.springdoc .Values.config.springdoc.swaggerUiPath) }}
     springdoc:
       {{- if .Values.config.springdoc.apiDocsPath }}
       api-docs:
@@ -17,10 +17,12 @@ data:
         path: {{ .Values.config.springdoc.swaggerUiPath }}
       {{- end }}
     {{- end }}
-    {{- if and .Values.config.server .Values.config.server.address }}
     server:
+      {{- if and .Values.config.server .Values.config.server.address }}
       address: {{ .Values.config.server.address }}
-    {{- end }}
+      {{- end }}
+      tomcat:
+        basedir: /tmp
     {{- if .Values.config.ldesServer }}
     ldes-server:
       host-name: {{ required "config.ldesServer.hostName is required" .Values.config.ldesServer.hostName }}
@@ -63,9 +65,15 @@ data:
       max-age-immutable: {{ .Values.config.rest.maxAgeImmutable }}
       {{- end }}
     {{- end }}
-    {{- if and .Values.config.spring .Values.config.spring.datasource }}
     spring:
+      batch:
+        jdbc:
+          initialize-schema: "always"
       datasource:
+        {{- if .Values.postgres.enabled }}
+        url: jdbc:postgresql://{{ include "openldes-server.fullname" . }}-postgres:5432/{{ .Values.postgres.database | default "ldes" }}
+        username: admin
+        {{- else if and .Values.config.spring .Values.config.spring.datasource }}
         {{- if .Values.config.spring.datasource.url }}
         url: {{ .Values.config.spring.datasource.url }}
         {{- end }}
@@ -75,7 +83,7 @@ data:
         {{- if .Values.config.spring.datasource.password }}
         password: {{ .Values.config.spring.datasource.password }}
         {{- end }}
-    {{- end }}
+        {{- end }}
     {{- with .Values.config.extraConfig }}
     {{- toYaml . | nindent 4 }}
     {{- end }}

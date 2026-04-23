@@ -8,18 +8,18 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.config.ldesServer.fetch.port | default 8080 }}
-      targetPort: fetch
+      targetPort: {{ .Values.config.ldesServer.fetch.port | default 8080 }}
       protocol: TCP
       name: fetch
     {{- if and .Values.config.ldesServer.ingest .Values.config.ldesServer.ingest.port }}
     - port: {{ .Values.config.ldesServer.ingest.port }}
-      targetPort: ingest
+      targetPort: {{ .Values.config.ldesServer.ingest.port }}
       protocol: TCP
       name: ingest
     {{- end }}
     {{- if and .Values.config.ldesServer.admin .Values.config.ldesServer.admin.port }}
     - port: {{ .Values.config.ldesServer.admin.port }}
-      targetPort: admin
+      targetPort: {{ .Values.config.ldesServer.admin.port }}
       protocol: TCP
       name: admin
     {{- end }}

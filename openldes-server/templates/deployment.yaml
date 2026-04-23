@@ -32,6 +32,19 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.postgres.enabled }}
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z {{ include "openldes-server.fullname" . }}-postgres 5432; do
+                echo "Waiting for PostgreSQL..."
+                sleep 2
+              done
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           {{- with .Values.securityContext }}
@@ -40,6 +53,20 @@ spec:
           {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-Djava.io.tmpdir=/tmp"
+            {{- if .Values.postgres.enabled }}
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openldes-server.fullname" . }}-postgres
+                  key: postgres-password
+            {{- end }}
+            {{- range $name, $value := .Values.env }}
+            - name: {{ $name }}
+              value: {{ $value | quote }}
+            {{- end }}
           ports:
             - name: fetch
               containerPort: {{ .Values.config.ldesServer.fetch.port | default 8080 }}
@@ -54,6 +81,13 @@ spec:
               containerPort: {{ .Values.config.ldesServer.admin.port }}
               protocol: TCP
             {{- end }}
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: fetch
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 30
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
@@ -66,21 +100,26 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.volumeMounts }}
           volumeMounts:
             - name: config
               mountPath: /config/application.yml
               subPath: application.yml
               readOnly: true
+            - name: tmp
+              mountPath: /tmp
+            {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
-          {{- end }}
-      {{- with .Values.volumes }}
+            {{- end }}
       volumes:
         - name: config
           configMap:
             name: {{ include "openldes-server.fullname" . }}
+        - name: tmp
+          emptyDir:
+            medium: Memory
+        {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

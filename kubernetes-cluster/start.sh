@@ -20,6 +20,17 @@ done <<EOF
 $openldes_images
 EOF
 
-cd ../openldes-server
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
 
+INGRESS_POD=$(kubectl get --namespace 'ingress-nginx' pod -o jsonpath="{.items[0].metadata.name}")
+kubectl wait --for=condition=Ready --namespace 'ingress-nginx' "pod/${INGRESS_POD}" --timeout=60s
 
+echo "Installing OpenLDES Server ..."
+helm install --wait --timeout 5m0s demo ../openldes-server
+echo "OpenLDES Server installed ..."
+
+echo "Creating occupancy event stream and views ..."
+./demo/deploy-server.sh
+echo "Occupancy event stream and views created ..."
+
+echo "All done! You can now access the OpenLDES Server at http://openldes.local"
