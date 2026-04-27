@@ -2,9 +2,9 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "openldes-server.fullname" . }}
+  name: {{ include "openldes-ldio.fullname" . }}
   labels:
-    {{- include "openldes-server.labels" . | nindent 4 }}
+    {{- include "openldes-ldio.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -25,19 +25,19 @@ spec:
   {{- end }}
   rules:
     {{- range .Values.ingress.hosts }}
-    - http:
+    - host: {{ .host | quote }}
+      http:
         paths:
           {{- range .paths }}
           - path: {{ .path }}
-            pathType: {{ .pathType | default "Prefix" }}
+            {{- with .pathType }}
+            pathType: {{ . }}
+            {{- end }}
             backend:
               service:
-                name: {{ .serviceName | default (include "openldes-server.fullname" $ ) }}
+                name: {{ include "openldes-ldio.fullname" $ }}
                 port:
-                 number: {{ .portNumber | default 8080 }}
+                  number: {{ $.Values.service.port }}
           {{- end }}
-      {{- if .host }}
-      host: {{ .host | quote }}
-      {{- end }}
     {{- end }}
 {{- end }}

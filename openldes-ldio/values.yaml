@@ -1,95 +1,66 @@
+# Default values for openldes-ldio.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
-  repository: openldes/ldes-server
+  repository: openldes/ldi-orchestrator
   # This sets the pull policy for images.
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: latest
-
-# Additional environment variables for the LDES server container
-env:
-  MANAGEMENT_TRACING_ENABLED: "false"
-  # Set SIS_DATA to a writable directory if you want to use Apache Spatial Information System (SIS) (if you want to make use of by-location fragmentation)
-  # This will extend the startup time of the LDES server significantly
-  # SIS_DATA: "/tmp"
-
-# -- LDES Server application configuration
-# Reference: https://openldes.github.io/LDESServer/4.0.0/how-to-run.html
-config:
-  # Spring API docs & Swagger UI
-  springdoc:
-    apiDocsPath:
-    swaggerUiPath:
-
-  server:
-    # Bind address for the server
-    address:
-
-  ldesServer:
-    # Public hostname used in generated URIs
-    hostName: http://localhost:8080
-    # Use relative URLs in responses
-    useRelativeUrl:
-    # Port configuration
-    fetch:
-      port:
-    ingest:
-      port:
-    admin:
-      port:
-    # Cron expression for fragmentation
-    fragmentationCron:
-    # ISO 8601 duration for compaction
-    compactionDuration:
-    # Cron expression for maintenance
-    maintenanceCron:
-    # Formatting
-    formatting:
-      prefixes: { }
-
-  # Cache control
-  rest:
-    maxAge:
-    maxAgeImmutable:
-
-  # PostgreSQL connection settings. Use these settings if you want to connect to a Postgres database that exists outside of this application.
-  # This should be used in a production environment, with "postgres.enabled" = false.
-  # When you set "postgres.enabled" to true, these values will be ignored: the url, username and password will be set to these of the Postgres that will be created
-  spring:
-    datasource:
-      url:
-      username:
-      password:
-
-  # -- Additional configuration to merge into application.yml
-  extraConfig: { }
+  tag: ""
 
 # Set the replicaCount to 0 or 1 (multiple instances is not yet supported)
 replicaCount: 1
-
-# Postgres database to be used by the LDES server. Don't use this in production, but it is useful for testing and development.
-# If you want to use an external database, you can set enabled to false and provide the connection settings in config.spring.datasource.
-postgres:
-  # Don't enable the Postgres database in a production environment!
-  enabled: true
-  image:
-    repository: postgres
-    pullPolicy: IfNotPresent
-    tag: latest
-  # Database name to create
-  database: ldes
-  # Password for the admin user (auto-generated if not set)
-  password: ""
-  # PVC storage size
-  storage: 1Gi
-  # Storage class name (uses default if not set)
-  # storageClassName: ""
 
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: [ ]
 # This is to override the chart name.
 nameOverride: ""
 fullnameOverride: ""
+
+config:
+  orchestrator:
+    directory: /ldio/pipelines
+  pipelines:
+    - name: occupancy-pipeline
+      description: "Polls for JSON public parking occupancy data, converts to linked data, creates versions & sends to LDES server."
+      input:
+        name: Ldio:HttpInPoller
+        config:
+          url: https://data.stad.gent/api/explore/v2.1/catalog/datasets/bezetting-parkeergarages-real-time/exports/json?lang=en&timezone=Europe%2FBrussels
+          cron: "0 */2 * * * *"
+        adapter:
+          name: Ldio:JsonToLdAdapter
+          config:
+            context: https://temp.org/ns/advanced-compose#
+      outputs:
+        - name: Ldio:HttpOut
+          config:
+            endpoint: http://openldes.local/ingest/occupancy
+            rdf-writer:
+              content-type: text/turtle
+
+# Postgres database to be used by the LDES Client. Don't use this in production,
+#    but it is useful for testing and development.
+# If you don't use an LDES client in your pipeline, or if you want to use an external database,
+#    you can set enabled to false and provide the connection settings in the pipeline, as described
+#    in the documentation (https://openldes.github.io/Linked-Data-Interactions/3.1.1/ldio/ldio-inputs/ldio-ldes-client#postgres-properties).
+postgres:
+  # Don't enable the Postgres database in a production environment, but use a Postgres database that is set up separately and provide the connection settings in the pipeline.
+  enabled: false
+  image:
+    repository: postgres
+    pullPolicy: IfNotPresent
+    tag: latest
+  # Database name to create
+  database: ldio
+  # Password for the admin user (auto-generated if not set)
+  password: ""
+  # PVC storage size
+  storage: 1Gi
+  # Storage class name (uses default if not set)
+  # storageClassName: ""
 
 # This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
 serviceAccount:
@@ -125,25 +96,25 @@ securityContext: { }
 service:
   # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
   type: ClusterIP
-  # The settings for the ports can be found under config.ldesServer.fetch, config.ldesServer.ingest and config.ldesServer.admin
+  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+  port: 8080
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
   enabled: true
   className: "nginx"
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+  annotations: { }
   # kubernetes.io/ingress.class: nginx
   # kubernetes.io/tls-acme: "true"
   hosts:
     - host: openldes.local
       paths:
-        - path: /
+        - path: /ldio
           pathType: Prefix
   tls: [ ]
-    # - secretName: openldes-server-tls
+    # - secretName: openldes-ldio-tls
   #   hosts:
-  #     - openldes-server.local
+  #     - openldes-ldio.local
 
 # -- Expose the service via gateway-api HTTPRoute
 # Requires Gateway API resources and suitable controller installed within the cluster
@@ -160,7 +131,7 @@ httpRoute:
       # namespace: default
   # Hostnames matching HTTP header.
   hostnames:
-    - openldes-server.local
+    - openldes-ldio.local
   # List of rules and filters applied.
   rules:
     - matches:
@@ -195,17 +166,17 @@ resources:
 livenessProbe:
   httpGet:
     path: /actuator/health
-    port: fetch
+    port: http
 readinessProbe:
   httpGet:
     path: /actuator/health
-    port: fetch
+    port: http
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:
   enabled: false
   minReplicas: 1
-  maxReplicas: 100
+  maxReplicas: 1
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 

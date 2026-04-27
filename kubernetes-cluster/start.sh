@@ -29,7 +29,7 @@ kubectl wait --for=condition=Ready --namespace 'ingress-nginx' "pod/${INGRESS_PO
 echo "Ingress-NGINX Controller is ready ... 👍"
 
 echo "Installing OpenLDES Server ... 🔗"
-helm install --wait --timeout 5m0s demo ../openldes-server
+helm install -f ./demo/server/values.yaml --wait --timeout 5m0s demo ../openldes-server
 echo "OpenLDES Server installed ... 👍"
 
 echo "Creating occupancy event stream and views ... 🌊"

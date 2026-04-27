@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "openldes-ldio.fullname" . }}
+  labels:
+    {{- include "openldes-ldio.labels" . | nindent 4 }}
+data:
+  {{ with .Values.config }}
+  application.yaml: |
+    orchestrator:
+      directory: {{ .orchestrator.directory }}
+
+
+
+    {{- if or (and .Values.config.springdoc .Values.config.springdoc.apiDocsPath) (and .Values.config.springdoc .Values.config.springdoc.swaggerUiPath) }}
+    springdoc:
+      {{- if .Values.config.springdoc.apiDocsPath }}
+      api-docs:
+        path: {{ .Values.config.springdoc.apiDocsPath }}
+      {{- end }}
+      {{- if .Values.config.springdoc.swaggerUiPath }}
+      swagger-ui:
+        path: {{ .Values.config.springdoc.swaggerUiPath }}
+      {{- end }}
+    {{- end }}
+    {{- with .Values.config.extraConfig }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
