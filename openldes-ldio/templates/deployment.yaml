@@ -56,14 +56,32 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.volumeMounts }}
           volumeMounts:
-            {{- toYaml . | nindent 12 }}
+            - name: config
+              mountPath: /ldio/application.yaml
+              subPath: application.yaml
+              readOnly: true
+            {{- range .Values.config.orchestrator.pipelines }}
+            - name: config
+              mountPath: {{ $.Values.config.orchestrator.directory | default "/ldio/pipelines" }}/{{ .name }}.yaml
+              subPath: {{ .name }}.yaml
+              readOnly: true
+            {{- end }}
+            - name: tmp
+              mountPath: /tmp
+          {{- with .Values.volumeMounts }}
+          {{- toYaml . | nindent 12 }}
           {{- end }}
-      {{- with .Values.volumes }}
       volumes:
+        - name: config
+          configMap:
+            name: {{ include "openldes-ldio.fullname" . }}
+        - name: tmp
+          emptyDir:
+            medium: Memory
+        {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -8,7 +8,7 @@ image:
   # This sets the pull policy for images.
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "latest"
 
 # Set the replicaCount to 0 or 1 (multiple instances is not yet supported)
 replicaCount: 1
@@ -22,24 +22,44 @@ fullnameOverride: ""
 config:
   orchestrator:
     directory: /ldio/pipelines
-  pipelines:
-    - name: occupancy-pipeline
-      description: "Polls for JSON public parking occupancy data, converts to linked data, creates versions & sends to LDES server."
-      input:
-        name: Ldio:HttpInPoller
-        config:
-          url: https://data.stad.gent/api/explore/v2.1/catalog/datasets/bezetting-parkeergarages-real-time/exports/json?lang=en&timezone=Europe%2FBrussels
-          cron: "0 */2 * * * *"
-        adapter:
-          name: Ldio:JsonToLdAdapter
-          config:
-            context: https://temp.org/ns/advanced-compose#
-      outputs:
-        - name: Ldio:HttpOut
-          config:
-            endpoint: http://openldes.local/ingest/occupancy
-            rdf-writer:
-              content-type: text/turtle
+    pipelines:
+  #      - name: occupancy-pipeline
+  #        description: "Polls for JSON public parking occupancy data, converts to linked data, creates versions & sends to LDES server."
+  #        input:
+  #          name: Ldio:HttpInPoller
+  #          config:
+  #            url: https://data.stad.gent/api/explore/v2.1/catalog/datasets/bezetting-parkeergarages-real-time/exports/json?lang=en&timezone=Europe%2FBrussels
+  #            cron: "0 */1 * * * *"
+  #          adapter:
+  #            name: Ldio:JsonToLdAdapter
+  #            config:
+  #              context: |
+  #                {
+  #                  "@context": {
+  #                    "@vocab": "https://example.org/ns/mobility#",
+  #                    "urllinkaddress": "@id",
+  #                    "type": "@type",
+  #                    "lastupdate": {
+  #                      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+  #                    }
+  #                  }
+  #                }
+  #        outputs:
+  #          - name: Ldio:ConsoleOut
+  #          - name: Ldio:HttpOut
+  #            config:
+  #              endpoint: http://ldes-openldes-server.default.svc.cluster.local:8080/occupancy
+  #              rdf-writer:
+  #                content-type: text/turtle
+  #      - name: next-pipeline
+  #        ...
+  extraConfig:
+    server:
+      port: 8080
+    logging:
+      level:
+        root: WARN
+        org.openldes: INFO
 
 # Postgres database to be used by the LDES Client. Don't use this in production,
 #    but it is useful for testing and development.
@@ -101,18 +121,18 @@ service:
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
-  enabled: true
+  enabled: false
   className: "nginx"
   annotations: { }
   # kubernetes.io/ingress.class: nginx
   # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: openldes.local
+    - host:
       paths:
         - path: /ldio
           pathType: Prefix
   tls: [ ]
-    # - secretName: openldes-ldio-tls
+  # - secretName: openldes-ldio-tls
   #   hosts:
   #     - openldes-ldio.local
 
@@ -167,12 +187,19 @@ livenessProbe:
   httpGet:
     path: /actuator/health
     port: http
+  initialDelaySeconds: 30
+  periodSeconds: 5
+  failureThreshold: 10
 readinessProbe:
   httpGet:
     path: /actuator/health
     port: http
+  initialDelaySeconds: 30
+  periodSeconds: 5
+  failureThreshold: 10
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+# For the moment, it's recommended to keep autoscaling disabled (enabled: false) and set minReplicas and maxReplicas to 1, as multiple instances of the LDI Orchestrator are not yet supported.
 autoscaling:
   enabled: false
   minReplicas: 1
@@ -181,17 +208,17 @@ autoscaling:
   # targetMemoryUtilizationPercentage: 80
 
 # Additional volumes on the output Deployment definition.
-volumes: [ ]
-  # - name: foo
-  #   secret:
-#     secretName: mysecret
-#     optional: false
+volumes:
+#  - name: foo
+#    secret:
+#      secretName: mysecret
+#      optional: false
 
 # Additional volumeMounts on the output Deployment definition.
-volumeMounts: [ ]
-  # - name: foo
-#   mountPath: "/etc/foo"
-#   readOnly: true
+volumeMounts:
+#  - name: foo
+#    mountPath: "/etc/foo"
+#    readOnly: true
 
 nodeSelector: { }
 
