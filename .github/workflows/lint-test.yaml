@@ -44,4 +44,6 @@ jobs:
 
       - name: Run chart-testing (install)
         if: steps.list-changed.outputs.changed == 'true'
-        run: ct install --target-branch ${{ github.event.repository.default_branch }}
+        run: |
+          ct install --target-branch ${{ github.event.repository.default_branch }} --charts charts/openldes-ldio
+          ct install --target-branch ${{ github.event.repository.default_branch }} --charts charts/openldes-server --helm-extra-set-args '--set=postgres.enabled=true'

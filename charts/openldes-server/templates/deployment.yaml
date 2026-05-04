@@ -81,13 +81,10 @@ spec:
               containerPort: {{ .Values.config.ldesServer.admin.port }}
               protocol: TCP
             {{- end }}
+          {{- with .Values.startupProbe }}
           startupProbe:
-            httpGet:
-              path: /actuator/health
-              port: fetch
-            initialDelaySeconds: 10
-            periodSeconds: 5
-            failureThreshold: 30
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

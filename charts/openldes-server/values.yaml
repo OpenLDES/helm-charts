@@ -97,7 +97,7 @@ config:
 # If you want to use an external database, you can set enabled to false and provide the connection settings in config.spring.datasource.
 postgres:
   # Don't enable the Postgres database in a production environment, but use a Postgres database that is set up separately and provide the connection settings in the configuration.
-  enabled: true
+  enabled: false
   image:
     repository: postgres
     pullPolicy: IfNotPresent
@@ -222,12 +222,20 @@ resources:
 # https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 livenessProbe:
   httpGet:
-    path: /actuator/health/liveness
+    path: /actuator/health
     port: fetch
 readinessProbe:
   httpGet:
-    path: /actuator/health/readiness
+    path: /actuator/health
     port: fetch
+startupProbe:
+  httpGet:
+    path: /actuator/health
+    port: fetch
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  failureThreshold: 30
+
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:
