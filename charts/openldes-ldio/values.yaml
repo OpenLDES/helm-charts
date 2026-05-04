@@ -14,7 +14,7 @@ image:
 replicaCount: 1
 
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
-imagePullSecrets: []
+imagePullSecrets: [ ]
 # This is to override the chart name.
 nameOverride: ""
 fullnameOverride: ""
@@ -89,22 +89,22 @@ serviceAccount:
   # Automatically mount a ServiceAccount's API credentials?
   automount: true
   # Annotations to add to the service account.
-  annotations: {}
+  annotations: { }
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template.
   name: ""
 
 # This is for setting Kubernetes Annotations to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
-podAnnotations: {}
+podAnnotations: { }
 # This is for setting Kubernetes Labels to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
-podLabels: {}
+podLabels: { }
 
-podSecurityContext: {}
+podSecurityContext: { }
 # fsGroup: 2000
 
-securityContext: {}
+securityContext: { }
 # TODO
 #  readOnlyRootFilesystem: true
 #  runAsNonRoot: true
@@ -123,7 +123,7 @@ service:
 ingress:
   enabled: false
   className: "nginx"
-  annotations: {}
+  annotations: { }
   # kubernetes.io/ingress.class: nginx
   # kubernetes.io/tls-acme: "true"
   hosts:
@@ -131,7 +131,7 @@ ingress:
       paths:
         - path: /ldio
           pathType: Prefix
-  tls: []
+  tls: [ ]
   # - secretName: openldes-ldio-tls
   #   hosts:
   #     - openldes-ldio.local
@@ -143,7 +143,7 @@ httpRoute:
   # HTTPRoute enabled.
   enabled: false
   # HTTPRoute annotations.
-  annotations: {}
+  annotations: { }
   # Which Gateways this Route is attached to.
   parentRefs:
     - name: gateway
@@ -220,8 +220,8 @@ volumeMounts:
 #    mountPath: "/etc/foo"
 #    readOnly: true
 
-nodeSelector: {}
+nodeSelector: { }
 
-tolerations: []
+tolerations: [ ]
 
-affinity: {}
+affinity: { }
