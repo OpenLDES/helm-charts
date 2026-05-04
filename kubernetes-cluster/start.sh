@@ -35,6 +35,7 @@ echo "Ingress-NGINX Controller is ready ... 👍"
 
 echo "Installing OpenLDES Server ... 🔗"
 helm install -f ./demo/server/values.yaml --wait --timeout 5m0s --create-namespace --namespace "${LDES_SERVER_NAMESPACE}" ldes ../charts/openldes-server
+kubectl wait --for=condition=Ready --namespace "${LDES_SERVER_NAMESPACE}" "deployment/ldes-server" --timeout=2m0s
 echo "OpenLDES Server installed ... 👍"
 
 echo "Creating occupancy event stream and views ... 🌊"

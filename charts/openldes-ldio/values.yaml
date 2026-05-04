@@ -13,7 +13,8 @@ image:
 # Set the replicaCount to 0 or 1 (multiple instances is not yet supported)
 replicaCount: 1
 
-# This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+# This is for the secrets for pulling an image from a private repository more information can be found here:
+# https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: [ ]
 # This is to override the chart name.
 nameOverride: ""
@@ -65,7 +66,7 @@ config:
 #    but it is useful for testing and development.
 # If you don't use an LDES client in your pipeline, or if you want to use an external database,
 #    you can set enabled to false and provide the connection settings in the pipeline, as described
-#    in the documentation (https://openldes.github.io/Linked-Data-Interactions/3.1.1/ldio/ldio-inputs/ldio-ldes-client#postgres-properties).
+#    in the documentation (https://openldes.github.io/Linked-Data-Interactions/latest/ldio/ldio-inputs/ldio-ldes-client#postgres-properties).
 postgres:
   # Don't enable the Postgres database in a production environment, but use a Postgres database that is set up separately and provide the connection settings in the pipeline.
   enabled: false
@@ -158,21 +159,21 @@ httpRoute:
         - path:
             type: PathPrefix
             value: /headers
-  #   filters:
-  #   - type: RequestHeaderModifier
-  #     requestHeaderModifier:
-  #       set:
-  #       - name: My-Overwrite-Header
-  #         value: this-is-the-only-value
-  #       remove:
-  #       - User-Agent
-  # - matches:
-  #   - path:
-  #       type: PathPrefix
-  #       value: /echo
-  #     headers:
-  #     - name: version
-  #       value: v2
+#      filters:
+#        - type: RequestHeaderModifier
+#          requestHeaderModifier:
+#            set:
+#              - name: My-Overwrite-Header
+#                value: this-is-the-only-value
+#            remove:
+#              - User-Agent
+#    - matches:
+#        - path:
+#            type: PathPrefix
+#            value: /echo
+#          headers:
+#            - name: version
+#              value: v2
 
 resources:
   limits:
@@ -182,7 +183,8 @@ resources:
     cpu: 250m
     memory: 256Mi
 
-# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+# This is to setup the liveness and readiness probes more information can be found here:
+# https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 livenessProbe:
   httpGet:
     path: /actuator/health
@@ -199,7 +201,8 @@ readinessProbe:
   failureThreshold: 10
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
-# For the moment, it's recommended to keep autoscaling disabled (enabled: false) and set minReplicas and maxReplicas to 1, as multiple instances of the LDI Orchestrator are not yet supported.
+# For the moment, it's recommended to keep autoscaling disabled (enabled: false) and set minReplicas and maxReplicas to 1, as multiple instances
+# of the LDI Orchestrator are not yet supported.
 autoscaling:
   enabled: false
   minReplicas: 1

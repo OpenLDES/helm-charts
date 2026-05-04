@@ -13,7 +13,8 @@ image:
 # Set the replicaCount to 0 or 1 (multiple instances is not yet supported)
 replicaCount: 1
 
-# This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+# This is for the secrets for pulling an image from a private repository more information can be found here:
+# https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: [ ]
 # This is to override the chart name.
 nameOverride: ""
@@ -58,7 +59,8 @@ config:
     admin:
       # Defines on which port the admin endpoints are available. If not set, it will be available on port 8080.
       port:
-    # Defines how often Fragmentation Service will check for unprocessed members (when present, trigger fragmentation job). If not set, this cron expression will be used: "*/30 * * * * *" (every 30 seconds).
+    # Defines how often Fragmentation Service will check for unprocessed members (when present, trigger fragmentation job).
+    # If not set, this cron expression will be used: "*/30 * * * * *" (every 30 seconds).
     fragmentationCron:
     # Defines how long the redundant compacted fragments will remain on the server. If not set, then the default value will be 7 days (P7D).
     compactionDuration:
@@ -192,21 +194,21 @@ httpRoute:
         - path:
             type: PathPrefix
             value: /headers
-  #   filters:
-  #   - type: RequestHeaderModifier
-  #     requestHeaderModifier:
-  #       set:
-  #       - name: My-Overwrite-Header
-  #         value: this-is-the-only-value
-  #       remove:
-  #       - User-Agent
-  # - matches:
-  #   - path:
-  #       type: PathPrefix
-  #       value: /echo
-  #     headers:
-  #     - name: version
-  #       value: v2
+#      filters:
+#        - type: RequestHeaderModifier
+#          requestHeaderModifier:
+#            set:
+#              - name: My-Overwrite-Header
+#                value: this-is-the-only-value
+#            remove:
+#              - User-Agent
+#    - matches:
+#        - path:
+#            type: PathPrefix
+#            value: /echo
+#          headers:
+#            - name: version
+#              value: v2
 
 resources:
   limits:
@@ -216,7 +218,8 @@ resources:
     cpu: 250m
     memory: 256Mi
 
-# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+# This is to setup the liveness and readiness probes more information can be found here:
+# https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 livenessProbe:
   httpGet:
     path: /actuator/health/liveness
