@@ -1,8 +1,8 @@
 #!/bin/bash
 
 OPENLDES_IMAGES="
-openldes/ldes-server:latest
-openldes/ldi-orchestrator:latest
+openldes/ldes-server:4.0.0
+openldes/ldi-orchestrator:3.1.1
 "
 
 LDES_SERVER_NAMESPACE="openldes-server"
@@ -34,7 +34,7 @@ kubectl wait --for=condition=Ready --namespace "${INGRESS_NGINX_NAMESPACE}" "pod
 echo "Ingress-NGINX Controller is ready ... 👍"
 
 echo "Installing OpenLDES Server ... 🔗"
-helm install -f ./demo/server/values.yaml --wait --timeout 5m0s --create-namespace --namespace "${LDES_SERVER_NAMESPACE}" ldes ../openldes-server
+helm install -f ./demo/server/values.yaml --wait --timeout 5m0s --create-namespace --namespace "${LDES_SERVER_NAMESPACE}" ldes ../charts/openldes-server
 echo "OpenLDES Server installed ... 👍"
 
 echo "Creating occupancy event stream and views ... 🌊"
@@ -42,7 +42,7 @@ echo "Creating occupancy event stream and views ... 🌊"
 echo "Occupancy event stream and views created ... 👍"
 
 echo "Now deploying the LDI Orchestrator ... 🤖"
-helm install -f ./demo/ldio/values.yaml --wait --timeout 5m0s --create-namespace --namespace "${LDIO_NAMESPACE}"  ldio ../openldes-ldio
+helm install -f ./demo/ldio/values.yaml --wait --timeout 5m0s --create-namespace --namespace "${LDIO_NAMESPACE}"  ldio ../charts/openldes-ldio
 echo "LDI Orchestrator deployed ... 👍"
 
 curl -s http://openldes.local/occupancy > /dev/null
