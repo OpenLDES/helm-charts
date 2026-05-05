@@ -11,5 +11,5 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args: ['{{ include "openldes-server.fullname" . }}:{{ .Values.config.ldesServer.fetch.port | default 8080 }}']
+      args: ['{{ include "openldes-server.fullname" . }}:{{ .Values.config.ldesServer.fetch.port | default 8080 }}/actuator/health']
   restartPolicy: Never

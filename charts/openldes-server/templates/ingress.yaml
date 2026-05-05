@@ -29,14 +29,12 @@ spec:
         paths:
           {{- range .paths }}
           - path: {{ .path }}
-            {{- with .pathType }}
-            pathType: {{ . }}
-            {{- end }}
+            pathType: {{ .pathType | default "Prefix" }}
             backend:
               service:
-                name: {{ include "openldes-server.fullname" $ }}
+                name: {{ .serviceName | default (include "openldes-server.fullname" $ ) }}
                 port:
-                 number: {{ $.Values.config.ldesServer.fetch.port | default 8080 }}
+                 number: {{ .portNumber | default 8080 }}
           {{- end }}
       {{- if .host }}
       host: {{ .host | quote }}

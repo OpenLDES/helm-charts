@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "openldes-ldio.fullname" . }}
+  labels:
+    {{- include "openldes-ldio.labels" . | nindent 4 }}
+data:
+  application.yaml: |
+  {{- with .Values.config }}
+    {{- if and .orchestrator .orchestrator.directory }}
+    orchestrator:
+      directory: {{ .orchestrator.directory }}
+    {{- end }}
+    {{- if .extraConfig }}
+    {{- with .extraConfig }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
+  {{- range .Values.config.orchestrator.pipelines }}
+  {{ .name }}.yaml: |
+    {{- toYaml . | nindent 4 }}
+  {{- end }}

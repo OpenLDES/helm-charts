@@ -1,3 +1,7 @@
+# Default values for openldes-server.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
   repository: openldes/ldes-server
@@ -5,6 +9,16 @@ image:
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: latest
+
+# Set the replicaCount to 0 or 1 (multiple instances is not yet supported)
+replicaCount: 1
+
+# This is for the secrets for pulling an image from a private repository more information can be found here:
+# https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: [ ]
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
 
 # Additional environment variables for the LDES server container
 env:
@@ -18,38 +32,49 @@ env:
 config:
   # Spring API docs & Swagger UI
   springdoc:
+    # The url that will point to the Open API documentation. More [Open-API documentation](https://springdoc.org/#properties). This is an optional setting.
     apiDocsPath:
+    # The url that will point to the Swagger documentation. More [Swagger UI documentation](https://springdoc.org/#swagger-ui-properties). This is an optional setting.
     swaggerUiPath:
 
   server:
-    # Bind address for the server
+    # This is the url that will be used by the server application to bind to.
+    # This is especially useful when exposing actuator endpoints publicly.
+    # However, it must be known if the address cannot be found or is unavailable, the application will be unable to start.
+    # This is an optional setting.
     address:
 
   ldesServer:
-    # Public hostname used in generated URIs
-    hostName: http://localhost:8080
-    # Use relative URLs in responses
+    # This is the url that will be used throughout the fragment names. This should therefore point to a resolvable url. This is a required setting.
+    hostName: "http://localhost:8080"
+    # Determines if the resources hosted on the server are constructed with a relative URI. For more information see: https://openldes.github.io/LDESServer/latest/features/relative-urls
     useRelativeUrl:
     # Port configuration
     fetch:
+      # Defines on which port the ingest endpoint is available. If not set, it will be available on port 8080.
       port:
     ingest:
+      # Defines on which port the fetch endpoints are available. If not set, it will be available on port 8080.
       port:
     admin:
+      # Defines on which port the admin endpoints are available. If not set, it will be available on port 8080.
       port:
-    # Cron expression for fragmentation
+    # Defines how often Fragmentation Service will check for unprocessed members (when present, trigger fragmentation job).
+    # If not set, this cron expression will be used: "*/30 * * * * *" (every 30 seconds).
     fragmentationCron:
-    # ISO 8601 duration for compaction
+    # Defines how long the redundant compacted fragments will remain on the server. If not set, then the default value will be 7 days (P7D).
     compactionDuration:
-    # Cron expression for maintenance
+    # Defines how often the maintenance job will run, which includes retention, compaction and deletion. If not set, this cron expression will be used: "0 0 0 * * *" (every day at midnight).
     maintenanceCron:
-    # Formatting
     formatting:
+      # [Prefixes](https://openldes.github.io/LDESServer/latest/features/rdf-prefixes) that will be used in the LDES Server when fetching data from the server in text/turtle format
       prefixes: { }
 
   # Cache control
   rest:
+    # Time in seconds that a mutable fragment can be considered up-to-date. When not set, the default value will be 1 minute (60 seconds).
     maxAge:
+    # Time in seconds that an immutable fragment should not be refreshed. When not set, the default value will be 7 days (604800 seconds).
     maxAgeImmutable:
 
   # PostgreSQL connection settings. Use these settings if you want to connect to a Postgres database that exists outside of this application.
@@ -57,21 +82,22 @@ config:
   # When you set "postgres.enabled" to true, these values will be ignored: the url, username and password will be set to these of the Postgres that will be created
   spring:
     datasource:
+      # URL that points to the PostgreSQL server
       url:
+      # Username to log into provided PostgreSQL instance
       username:
+      # Password to log into provided PostgreSQL instance
       password:
 
   # -- Additional configuration to merge into application.yml
   extraConfig: { }
 
-# Set the replicaCount to 0 or 1 (multiple instances is not yet supported)
-replicaCount: 1
 
 # Postgres database to be used by the LDES server. Don't use this in production, but it is useful for testing and development.
 # If you want to use an external database, you can set enabled to false and provide the connection settings in config.spring.datasource.
 postgres:
-  # Don't enable the Postgres database in a production environment!
-  enabled: true
+  # Don't enable the Postgres database in a production environment, but use a Postgres database that is set up separately and provide the connection settings in the configuration.
+  enabled: false
   image:
     repository: postgres
     pullPolicy: IfNotPresent
@@ -85,11 +111,6 @@ postgres:
   # Storage class name (uses default if not set)
   # storageClassName: ""
 
-# This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
-imagePullSecrets: [ ]
-# This is to override the chart name.
-nameOverride: ""
-fullnameOverride: ""
 
 # This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
 serviceAccount:
@@ -129,19 +150,25 @@ service:
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
-  enabled: true
-  className: "nginx"
+  enabled: false
+  className: ""
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
   # kubernetes.io/ingress.class: nginx
   # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: openldes.local
+    - host:
       paths:
         - path: /
+          portNumber: 8080
           pathType: Prefix
+  #        - path: /ingest
+  #          portNumber: 8081
+  #          pathType: Prefix
+  #        - path: /admin
+  #          portNumber: 8082
+  #          pathType: Prefix
   tls: [ ]
-    # - secretName: openldes-server-tls
+  # - secretName: openldes-server-tls
   #   hosts:
   #     - openldes-server.local
 
@@ -167,21 +194,21 @@ httpRoute:
         - path:
             type: PathPrefix
             value: /headers
-  #   filters:
-  #   - type: RequestHeaderModifier
-  #     requestHeaderModifier:
-  #       set:
-  #       - name: My-Overwrite-Header
-  #         value: this-is-the-only-value
-  #       remove:
-  #       - User-Agent
-  # - matches:
-  #   - path:
-  #       type: PathPrefix
-  #       value: /echo
-  #     headers:
-  #     - name: version
-  #       value: v2
+#      filters:
+#        - type: RequestHeaderModifier
+#          requestHeaderModifier:
+#            set:
+#              - name: My-Overwrite-Header
+#                value: this-is-the-only-value
+#            remove:
+#              - User-Agent
+#    - matches:
+#        - path:
+#            type: PathPrefix
+#            value: /echo
+#          headers:
+#            - name: version
+#              value: v2
 
 resources:
   limits:
@@ -191,7 +218,8 @@ resources:
     cpu: 250m
     memory: 256Mi
 
-# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+# This is to setup the liveness and readiness probes more information can be found here:
+# https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 livenessProbe:
   httpGet:
     path: /actuator/health
@@ -200,25 +228,33 @@ readinessProbe:
   httpGet:
     path: /actuator/health
     port: fetch
+startupProbe:
+  httpGet:
+    path: /actuator/health
+    port: fetch
+  initialDelaySeconds: 30
+  periodSeconds: 20
+  failureThreshold: 50
+
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:
   enabled: false
   minReplicas: 1
-  maxReplicas: 100
+  maxReplicas: 1
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
 # Additional volumes on the output Deployment definition.
 volumes: [ ]
-  # - name: foo
-  #   secret:
+# - name: foo
+#   secret:
 #     secretName: mysecret
 #     optional: false
 
 # Additional volumeMounts on the output Deployment definition.
 volumeMounts: [ ]
-  # - name: foo
+# - name: foo
 #   mountPath: "/etc/foo"
 #   readOnly: true
 
