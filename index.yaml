@@ -16,6 +16,18 @@ entries:
   openldes-server:
   - apiVersion: v2
     appVersion: 1.16.0
+    created: "2026-05-05T14:24:02.543746669Z"
+    description: A Helm chart for Kubernetes
+    digest: 23208edd01a15e715b642d26fc626a774ae1da322ba1a4dd1cff723c0e6aa28f
+    maintainers:
+    - name: Summm1t
+    name: openldes-server
+    type: application
+    urls:
+    - https://github.com/OpenLDES/helm-charts/releases/download/openldes-server-0.2.0/openldes-server-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
+    appVersion: 1.16.0
     created: "2026-05-05T10:12:32.251429863Z"
     description: A Helm chart for Kubernetes
     digest: f2c562efa05515d3d500d614724080777fec114a479de58ca29a1e9743915dc5
@@ -26,4 +38,4 @@ entries:
     urls:
     - https://github.com/OpenLDES/helm-charts/releases/download/openldes-server-0.1.0/openldes-server-0.1.0.tgz
     version: 0.1.0
-generated: "2026-05-05T10:12:32.251438646Z"
+generated: "2026-05-05T14:24:02.543764402Z"
