@@ -11,17 +11,26 @@ spec:
       targetPort: {{ .Values.config.ldesServer.fetch.port | default 8080 }}
       protocol: TCP
       name: fetch
+      {{- if and .Values.service.nodePorts .Values.service.nodePorts.fetch }}
+      nodePort: {{ .Values.service.nodePorts.fetch }}
+      {{- end }}
     {{- if and .Values.config.ldesServer.ingest .Values.config.ldesServer.ingest.port }}
     - port: {{ .Values.config.ldesServer.ingest.port }}
       targetPort: {{ .Values.config.ldesServer.ingest.port }}
       protocol: TCP
       name: ingest
+      {{- if and .Values.service.nodePorts .Values.service.nodePorts.ingest }}
+      nodePort: {{ .Values.service.nodePorts.ingest }}
+      {{- end }}
     {{- end }}
     {{- if and .Values.config.ldesServer.admin .Values.config.ldesServer.admin.port }}
     - port: {{ .Values.config.ldesServer.admin.port }}
       targetPort: {{ .Values.config.ldesServer.admin.port }}
       protocol: TCP
       name: admin
+      {{- if and .Values.service.nodePorts .Values.service.nodePorts.admin }}
+      nodePort: {{ .Values.service.nodePorts.admin }}
+      {{- end }}
     {{- end }}
   selector:
     {{- include "openldes-server.selectorLabels" . | nindent 4 }}
