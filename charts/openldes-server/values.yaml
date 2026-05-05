@@ -146,7 +146,13 @@ securityContext: { }
 service:
   # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
   type: ClusterIP
-  # The settings for the ports can be found under config.ldesServer.fetch, config.ldesServer.ingest and config.ldesServer.admin
+  # The settings for the ports can be found under config.ldesServer.fetch, config.ldesServer.ingest and config.ldesServer.admin, and are not set here.
+  # If you want to set the node ports, you can set them here. If not set, they will be automatically assigned by Kubernetes. Use this in combination with the service type NodePort.
+#  type: NodePort
+#  nodePorts:
+#    fetch: 30080
+#    ingest: 30081
+#    admin: 30082
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
