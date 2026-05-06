@@ -1,0 +1,74 @@
+{{- if .Values.config.streams }}
+{{- $fullName := include "openldes-server.fullname" . -}}
+{{- $adminPort := .Values.config.ldesServer.admin.port | default 8080 -}}
+{{- $serverUrl := printf "http://%s:%v" $fullName (int $adminPort) -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $fullName }}-create-eventstreams
+  labels:
+    {{- include "openldes-server.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  backoffLimit: 6
+  template:
+    metadata:
+      labels:
+        {{- include "openldes-server.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: create-eventstreams
+          image: alpine/curl:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+
+              SERVER_URL="{{ $serverUrl }}"
+
+              echo "Waiting for LDES server to be ready..."
+              until curl -sf "${SERVER_URL}/actuator/health" > /dev/null 2>&1; do
+                echo "LDES server not ready yet, retrying in 5s..."
+                sleep 5
+              done
+              echo "LDES server is ready."
+
+              {{- range $stream := .Values.config.streams }}
+
+              echo "Creating event stream '{{ $stream.name }}'..."
+              curl -X POST "${SERVER_URL}/admin/api/v1/eventstreams" \
+                -H "Content-Type: text/turtle" \
+                -d @/config/streams/stream-{{ $stream.name }}.ttl \
+                -w "\nHTTP status: %{http_code}\n" \
+                --fail-with-body || echo "Warning: failed to create event stream '{{ $stream.name }}' (it may already exist)"
+
+              {{- if $stream.views }}
+              {{- range $view := $stream.views }}
+
+              echo "Creating view '{{ $view.name }}' for event stream '{{ $stream.name }}'..."
+              curl -X POST "${SERVER_URL}/admin/api/v1/eventstreams/{{ $stream.name }}/views" \
+                -H "Content-Type: text/turtle" \
+                -d @/config/streams/view-{{ $stream.name }}-{{ $view.name }}.ttl \
+                -w "\nHTTP status: %{http_code}\n" \
+                --fail-with-body || echo "Warning: failed to create view '{{ $view.name }}' for event stream '{{ $stream.name }}' (it may already exist)"
+
+              {{- end }}
+              {{- end }}
+              {{- end }}
+
+              echo "All event streams and views have been processed."
+          volumeMounts:
+            - name: streams-config
+              mountPath: /config/streams
+              readOnly: true
+      volumes:
+        - name: streams-config
+          configMap:
+            name: {{ $fullName }}-streams
+{{- end }}
+

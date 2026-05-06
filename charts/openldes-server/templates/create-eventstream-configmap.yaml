@@ -1,0 +1,21 @@
+{{- if .Values.config.streams }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "openldes-server.fullname" . }}-streams
+  labels:
+    {{- include "openldes-server.labels" . | nindent 4 }}
+data:
+  {{- range $stream := .Values.config.streams }}
+  stream-{{ $stream.name }}.ttl: |
+    {{- $stream.configuration | nindent 4 }}
+  {{- if $stream.views }}
+  {{- range $view := $stream.views }}
+  view-{{ $stream.name }}-{{ $view.name }}.ttl: |
+    {{- $view.configuration | nindent 4 }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
+{{- end }}
+
+
