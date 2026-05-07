@@ -71,7 +71,7 @@ data:
           initialize-schema: "always"
       datasource:
         {{- if .Values.postgres.enabled }}
-        url: jdbc:postgresql://{{ include "openldes-server.fullname" . }}-postgres:5432/{{ .Values.postgres.database | default "ldes" }}
+        url: jdbc:postgresql://{{ include "openldes-server.fullname" . }}-postgres:{{ .Values.postgres.port | default 5432 }}/{{ .Values.postgres.database | default "ldes" }}
         username: admin
         {{- else if and .Values.config.spring .Values.config.spring.datasource }}
         {{- if .Values.config.spring.datasource.url }}

@@ -4,6 +4,7 @@ metadata:
   name: {{ include "openldes-server.fullname" . }}
   labels:
     {{- include "openldes-server.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ldes-server
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
@@ -11,6 +12,7 @@ spec:
   selector:
     matchLabels:
       {{- include "openldes-server.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: ldes-server
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -19,6 +21,7 @@ spec:
       {{- end }}
       labels:
         {{- include "openldes-server.labels" . | nindent 8 }}
+        app.kubernetes.io/component: ldes-server
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -40,7 +43,7 @@ spec:
             - sh
             - -c
             - |
-              until nc -z {{ include "openldes-server.fullname" . }}-postgres 5432; do
+              until nc -w 2 -z {{ include "openldes-server.fullname" . }}-postgres {{ .Values.postgres.port | default 5432 }}; do
                 echo "Waiting for PostgreSQL..."
                 sleep 2
               done

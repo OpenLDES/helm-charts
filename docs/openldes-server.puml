@@ -1,0 +1,73 @@
+@startuml ldesServerHelmChart
+
+skinparam rectangle {
+    BackgroundColor<<always>> #E8F5E9
+    BackgroundColor<<conditional>> #FFF3E0
+    BorderColor #333333
+}
+
+package "LDES Server Helm Chart" {
+
+    package "Core Resources" <<always>> {
+        rectangle "Deployment\n(ldes-server)" as deploy <<always>>
+        rectangle "Service\n(ClusterIP)" as svc <<always>>
+        rectangle "ConfigMap\n(application.yml)" as cm <<always>>
+        rectangle "ServiceAccount" as sa <<always>>
+    }
+
+    package "Networking (optional)" <<conditional>> {
+        rectangle "Ingress" as ingress <<conditional>>
+        rectangle "HTTPRoute\n(Gateway API)" as httproute <<conditional>>
+    }
+
+'    package "Autoscaling (optional)" <<conditional>> {
+'        rectangle "HorizontalPodAutoscaler" as hpa <<conditional>>
+'    }
+
+    package "Event Streams (optional)" <<conditional>> {
+        rectangle "Job\n(create-eventstreams)\n[post-install/post-upgrade hook]" as job <<conditional>>
+        rectangle "ConfigMap\n(streams)" as streamscm <<conditional>>
+    }
+
+    package "PostgreSQL (optional)" <<conditional>> {
+        rectangle "Deployment\n(postgres)" as pgdeploy <<conditional>>
+        rectangle "Service\n(postgres)" as pgsvc <<conditional>>
+        rectangle "Secret\n(postgres-password)" as pgsecret <<conditional>>
+        rectangle "PersistentVolumeClaim\n(postgres)" as pgpvc <<conditional>>
+    }
+}
+
+' Relationships
+deploy --> cm : mounts config
+deploy --> sa : uses
+svc --> deploy : routes to
+'hpa --> deploy : scales
+ingress --> svc : routes to
+httproute --> svc : routes to
+
+deploy ..> pgsecret : reads password\n(if postgres.enabled)
+pgdeploy --> pgsecret : reads password
+pgdeploy --> pgpvc : uses storage
+pgsvc --> pgdeploy : routes to
+deploy ..> pgsvc : connects to
+
+job --> streamscm : mounts stream\nconfigurations
+job ..> svc : calls admin API
+
+legend bottom left
+    |= Color |= Meaning |
+    | <#E8F5E9> | Always created |
+    | <#FFF3E0> | Conditionally created |
+endlegend
+
+note bottom
+  Conditional resources:
+  * Ingress: ingress.enabled = true
+  * HTTPRoute: httpRoute.enabled = true
+'  * HPA: autoscaling.enabled = true
+  * PostgreSQL: postgres.enabled = true
+  * Event Streams Job/ConfigMap: config.streams is defined
+  * ServiceAccount: serviceAccount.create = true (default)
+end note
+
+@enduml

@@ -1,36 +1,7 @@
-# -- LDES Server application configuration
-# Reference: https://openldes.github.io/LDESServer/4.0.0/how-to-run.html
 config:
-  server:
-    # Bind address for the server
-    address:
-
   ldesServer:
     # Public hostname used in generated URIs
-    hostName: http://openldes.local
-    # Use relative URLs in responses
-    useRelativeUrl:
-    # Port configuration
-    fetch:
-      port:
-    ingest:
-      port:
-    admin:
-      port:
-    # Cron expression for fragmentation
-    fragmentationCron:
-    # ISO 8601 duration for compaction
-    compactionDuration:
-    # Cron expression for maintenance
-    maintenanceCron:
-  # PostgreSQL connection settings. Use these settings if you want to connect to a Postgres database that exists outside of this application.
-  # This should be used in a production environment, with "postgres.enabled" = false.
-  # When you set "postgres.enabled" to true, these values will be ignored: the url, username and password will be set to these of the Postgres that will be created
-  spring:
-    datasource:
-      url:
-      username:
-      password:
+    hostName: "http://localhost:8080"
 
   streams:
     - name: occupancy
@@ -39,9 +10,9 @@ config:
         @prefix dcterms: <http://purl.org/dc/terms/> .
         @prefix tree: <https://w3id.org/tree#>.
         @prefix sh:   <http://www.w3.org/ns/shacl#> .
-        @prefix server: <http://openldes.local/> .
+        @prefix server: <http://localhost:8080/> .
         @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
-        @prefix genericES: <http://openldes.local/occupancy/> .
+        @prefix genericES: <http://localhost:8080/occupancy/> .
 
         server:occupancy a ldes:EventStream ;
                                    ldes:timestampPath dcterms:created ;
@@ -120,53 +91,17 @@ config:
               tree:pageSize "15"^^xsd:integer ;
             ] .
 
-
-# -- Additional configuration to merge into application.yml
-  extraConfig: { }
-
-
 # Postgres database to be used by the LDES server. Don't use this in production, but it is useful for testing and development.
 # If you want to use an external database, you can set enabled to false and provide the connection settings in config.spring.datasource.
 postgres:
   # Don't enable the Postgres database in a production environment!
   enabled: true
-  image:
-    repository: postgres
-    pullPolicy: IfNotPresent
-    tag: latest
   # Database name to create
   database: ldes
-  # Password for the admin user (auto-generated if not set)
-  password: ""
-  # PVC storage size
-  storage: 1Gi
-  # Storage class name (uses default if not set)
-  # storageClassName: ""
+  password: ldes
 
-podSecurityContext: { }
-# fsGroup: 2000
+service:
+  type: NodePort
+  nodePorts:
+    fetch: 30080
 
-securityContext: { }
-# TODO
-#  readOnlyRootFilesystem: true
-#  runAsNonRoot: true
-#  runAsUser: 2000
-#  seccompProfile:
-#    type: RuntimeDefault
-
-# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
-ingress:
-  enabled: true
-  className: "nginx"
-  annotations:
-  # kubernetes.io/ingress.class: nginx
-  # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: openldes.local
-      paths:
-        - path: /
-          pathType: Prefix
-  tls: [ ]
-  # - secretName: openldes-server-tls
-  #   hosts:
-  #     - openldes-server.local

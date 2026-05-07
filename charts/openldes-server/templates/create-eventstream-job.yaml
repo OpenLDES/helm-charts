@@ -17,7 +17,8 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "openldes-server.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/name: {{ include "openldes-server.name" . }}-create-eventstreams
+        app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       restartPolicy: OnFailure
       containers:
@@ -32,10 +33,11 @@ spec:
               SERVER_URL="{{ $serverUrl }}"
 
               echo "Waiting for LDES server to be ready..."
-              until curl -sf "${SERVER_URL}/actuator/health" > /dev/null 2>&1; do
-                echo "LDES server not ready yet, retrying in 5s..."
+              until curl -sf "${SERVER_URL}/" 2>/dev/null | grep -q 'PREFIX ldes:'; do
+                echo "LDES server not yet returning expected content, retrying in 5s..."
                 sleep 5
               done
+
               echo "LDES server is ready."
 
               {{- range $stream := .Values.config.streams }}
@@ -48,6 +50,12 @@ spec:
                 --fail-with-body || echo "Warning: failed to create event stream '{{ $stream.name }}' (it may already exist)"
 
               {{- if $stream.views }}
+
+              until curl -sf "${SERVER_URL}/{{ $stream.name }}" 2>/dev/null | grep -q 'PREFIX'; do
+                echo "LDES stream {{ $stream.name }} not yet returning expected content, retrying in 1s..."
+                sleep 1
+              done
+
               {{- range $view := $stream.views }}
 
               echo "Creating view '{{ $view.name }}' for event stream '{{ $stream.name }}'..."
@@ -62,6 +70,7 @@ spec:
               {{- end }}
 
               echo "All event streams and views have been processed."
+
           volumeMounts:
             - name: streams-config
               mountPath: /config/streams

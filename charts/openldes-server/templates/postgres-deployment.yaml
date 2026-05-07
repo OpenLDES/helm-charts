@@ -24,7 +24,7 @@ spec:
           imagePullPolicy: {{ .Values.postgres.image.pullPolicy }}
           ports:
             - name: postgres
-              containerPort: 5432
+              containerPort: {{ .Values.postgres.port | default 5432 }}
               protocol: TCP
           env:
             - name: POSTGRES_USER

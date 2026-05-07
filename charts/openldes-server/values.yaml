@@ -116,6 +116,8 @@ postgres:
     tag: latest
   # Database name to create
   database: ldes
+  # Port to run the PostgreSQL server on
+  port: 5432
   # Password for the admin user (auto-generated if not set)
   password: ""
   # PVC storage size
@@ -141,7 +143,8 @@ serviceAccount:
 podAnnotations: { }
 # This is for setting Kubernetes Labels to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
-podLabels: { }
+podLabels:
+  app.kubernetes.io/component: ldes-server
 
 podSecurityContext: { }
 # fsGroup: 2000
@@ -256,6 +259,8 @@ startupProbe:
 
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+# For the moment, it's recommended to keep autoscaling disabled (enabled: false) and set minReplicas and maxReplicas to 1, as multiple instances
+# of the LDES server is not yet supported.
 autoscaling:
   enabled: false
   minReplicas: 1
