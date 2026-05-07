@@ -44,6 +44,18 @@ config:
     # This is an optional setting.
     address:
 
+  # The configuration of the event streams and views that will be created on startup.
+  # This is an optional setting, but it is recommended to use this to automatically create the event streams and views on startup.
+  # If not set, you can still create the event streams and views manually via the admin API.
+#  streams:
+#    - name: generic-eventstream
+#      configuration: |
+#        # Add the configuration of your event stream here. See the documentation for more information: https://openldes.github.io/LDESServer/latest/configuration/event-stream
+#      views:
+#        - name: by-page
+#          configuration: |
+#            # Add the configuration of your view here. See the documentation for more information: https://openldes.github.io/LDESServer/latest/configuration/view
+
   ldesServer:
     # This is the url that will be used throughout the fragment names. This should therefore point to a resolvable url. This is a required setting.
     hostName: "http://localhost:8080"

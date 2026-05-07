@@ -32,7 +32,96 @@ config:
       username:
       password:
 
-  # -- Additional configuration to merge into application.yml
+  streams:
+    - name: occupancy
+      configuration: |
+        @prefix ldes: <https://w3id.org/ldes#> .
+        @prefix dcterms: <http://purl.org/dc/terms/> .
+        @prefix tree: <https://w3id.org/tree#>.
+        @prefix sh:   <http://www.w3.org/ns/shacl#> .
+        @prefix server: <http://openldes.local/> .
+        @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+        @prefix genericES: <http://openldes.local/occupancy/> .
+
+        server:occupancy a ldes:EventStream ;
+                                   ldes:timestampPath dcterms:created ;
+                                   ldes:versionOfPath dcterms:isVersionOf ;
+                                   ldes:createVersions true ;
+                                   tree:shape genericES:shape .
+
+        genericES:shape a sh:NodeShape .
+
+      views:
+        - name: by-page
+          configuration: |
+            @prefix tree:        <https://w3id.org/tree#>.
+            @prefix xsd:         <http://www.w3.org/2001/XMLSchema#> .
+
+            </occupancy/by-page> a tree:Node ;
+              tree:viewDescription [
+                a tree:ViewDescription ;
+                tree:fragmentationStrategy () ;
+            		tree:pageSize "50"^^xsd:integer
+            ] .
+
+        - name: by-time
+          configuration: |
+            @prefix tree:     <https://w3id.org/tree#>.
+            @prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
+            @prefix ldes:     <https://w3id.org/ldes#> .
+            @prefix prov:     <http://www.w3.org/ns/prov#> .
+            @prefix dcterms:  <http://purl.org/dc/terms/> .
+
+            </occupancy/by-time> a tree:Node ;
+              tree:viewDescription [
+                  a tree:ViewDescription ;
+                tree:fragmentationStrategy ([
+                  a tree:HierarchicalTimeBasedFragmentation ;
+                  tree:maxGranularity "hour" ;
+                  tree:fragmentationPath dcterms:modified ;
+                  ]) ;
+                  tree:pageSize "50"^^xsd:integer ;
+              ] .
+
+        - name: by-location
+          configuration: |
+            @prefix tree:         <https://w3id.org/tree#>.
+            @prefix xsd:          <http://www.w3.org/2001/XMLSchema#> .
+            @prefix ldes:         <https://w3id.org/ldes#> .
+            @prefix geosparql:	  <http://www.opengis.net/ont/geosparql#> .
+            
+            </occupancy/by-location> a tree:Node ;
+              tree:viewDescription [
+                  a tree:ViewDescription ;
+                tree:fragmentationStrategy ([
+                  a tree:GeospatialFragmentation ;
+                  tree:maxZoom "14"^^xsd:integer ;
+                  tree:fragmentationPath geosparql:asWKT
+                  ]) ;
+                  tree:pageSize "50"^^xsd:integer ;
+            ] .
+
+        - name: by-parking
+          configuration: |
+            @prefix tree:         <https://w3id.org/tree#>.
+            @prefix xsd:          <http://www.w3.org/2001/XMLSchema#> .
+            @prefix ldes:         <https://w3id.org/ldes#> .
+            @prefix geosparql:	  <http://www.opengis.net/ont/geosparql#> .
+            @prefix terms:        <http://purl.org/dc/terms/> .
+            
+            </occupancy/by-parking> a tree:Node ;
+              tree:viewDescription [
+                  a tree:ViewDescription ;
+                tree:fragmentationStrategy ([
+                  a tree:ReferenceFragmentation ;
+                  tree:fragmentationPath terms:isVersionOf ;
+                  tree:fragmentationKey "parking-lot"
+                ]) ;
+              tree:pageSize "15"^^xsd:integer ;
+            ] .
+
+
+# -- Additional configuration to merge into application.yml
   extraConfig: { }
 
 

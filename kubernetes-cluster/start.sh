@@ -38,9 +38,9 @@ helm install -f ./demo/server/values.yaml --wait --timeout 5m0s --create-namespa
 kubectl wait --for=condition=Ready --namespace "${LDES_SERVER_NAMESPACE}" "deployment/ldes-server" --timeout=2m0s
 echo "OpenLDES Server installed ... 👍"
 
-echo "Creating occupancy event stream and views ... 🌊"
-./demo/create-occupancy-ldes.sh
-echo "Occupancy event stream and views created ... 👍"
+#echo "Creating occupancy event stream and views ... 🌊"
+#./demo/create-occupancy-ldes.sh
+#echo "Occupancy event stream and views created ... 👍"
 
 echo "Now deploying the LDI Orchestrator ... 🤖"
 helm install -f ./demo/ldio/values.yaml --wait --timeout 5m0s --create-namespace --namespace "${LDIO_NAMESPACE}"  ldio ../charts/openldes-ldio
