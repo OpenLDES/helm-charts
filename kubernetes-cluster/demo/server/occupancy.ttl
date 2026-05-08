@@ -2,9 +2,9 @@
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix tree: <https://w3id.org/tree#>.
 @prefix sh:   <http://www.w3.org/ns/shacl#> .
-@prefix server: <http://openldes.local/> .
+@prefix server: <http://localhost:8080/> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
-@prefix genericES: <http://openldes.local/occupancy/> .
+@prefix genericES: <http://localhost:8080/occupancy/> .
 
 server:occupancy a ldes:EventStream ;
                            ldes:timestampPath dcterms:created ;

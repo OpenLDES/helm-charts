@@ -4,6 +4,7 @@ metadata:
   name: {{ include "openldes-ldio.fullname" . }}
   labels:
     {{- include "openldes-ldio.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ldio
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
@@ -11,6 +12,7 @@ spec:
   selector:
     matchLabels:
       {{- include "openldes-ldio.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: ldio
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -19,6 +21,7 @@ spec:
       {{- end }}
       labels:
         {{- include "openldes-ldio.labels" . | nindent 8 }}
+        app.kubernetes.io/component: ldio
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

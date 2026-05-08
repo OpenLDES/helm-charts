@@ -39,53 +39,9 @@ config:
         root: WARN
         org.openldes: INFO
 
-# Postgres database to be used by the LDES Client. Don't use this in production,
-#    but it is useful for testing and development.
-# If you don't use an LDES client in your pipeline, or if you want to use an external database,
-#    you can set enabled to false and provide the connection settings in the pipeline, as described
-#    in the documentation (https://openldes.github.io/Linked-Data-Interactions/3.1.1/ldio/ldio-inputs/ldio-ldes-client#postgres-properties).
-postgres:
-  # Don't enable the Postgres database in a production environment, but use a Postgres database that is set up separately and provide the connection settings in the pipeline.
-  enabled: false
-  image:
-    repository: postgres
-    pullPolicy: IfNotPresent
-    tag: latest
-  # Database name to create
-  database: ldio
-  # Password for the admin user (auto-generated if not set)
-  password: ""
-  # PVC storage size
-  storage: 1Gi
-  # Storage class name (uses default if not set)
-  # storageClassName: ""
-
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
   # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
   type: ClusterIP
   # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
   port: 8080
-
-# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
-ingress:
-  enabled: false
-  className: "nginx"
-  annotations: { }
-  hosts:
-    - host: openldes.local
-      paths:
-        - path: /ldio
-          pathType: Prefix
-  tls: [ ]
-  # - secretName: openldes-ldio-tls
-  #   hosts:
-  #     - openldes-ldio.local
-
-resources:
-  limits:
-    cpu: 500m
-    memory: 2Gi
-  requests:
-    cpu: 250m
-    memory: 256Mi

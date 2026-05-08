@@ -1,5 +1,5 @@
-SERVER_HOST=openldes.local
-SERVER_PORT=80
+SERVER_HOST=localhost
+SERVER_PORT=8080
 SCRIPT_DIR=$(dirname "$(realpath $0)")
 echo $SCRIPT_DIR
 

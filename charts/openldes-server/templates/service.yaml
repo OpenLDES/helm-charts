@@ -4,6 +4,7 @@ metadata:
   name: {{ include "openldes-server.fullname" . }}
   labels:
     {{- include "openldes-server.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ldes-server
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -34,3 +35,4 @@ spec:
     {{- end }}
   selector:
     {{- include "openldes-server.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: ldes-server
