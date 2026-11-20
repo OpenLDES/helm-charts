@@ -1,8 +1,8 @@
 #!/bin/bash
 
 OPENLDES_IMAGES="
-openldes/ldes-server:4.0.0
-openldes/ldi-orchestrator:3.1.1
+openldes/ldes-server:latest
+openldes/ldi-orchestrator:latest
 "
 
 LDES_SERVER_NAMESPACE="openldes-server"

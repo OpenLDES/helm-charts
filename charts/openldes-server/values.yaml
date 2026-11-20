@@ -8,7 +8,7 @@ image:
   # This sets the pull policy for images.
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: latest
+  tag: 4.2.3
 
 # Set the replicaCount to 0 or 1 (multiple instances is not yet supported)
 replicaCount: 1
